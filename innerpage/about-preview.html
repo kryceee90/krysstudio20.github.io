@@ -23,8 +23,16 @@ main{width:100%;max-width:none;margin:0}
 .motion{inset:0!important;width:100%;height:100%;transform:none;background-image:url('images/about-hanok-winter.png?v=5');background-size:contain;background-position:center center;background-repeat:no-repeat;background-color:#090909;animation:none}
 .snow{right:0;top:5%;width:55%;height:72%}
 @media(max-width:760px){.visual{height:auto!important;min-height:0!important;aspect-ratio:1673/941}.motion{background-size:contain;background-position:center}.snow{width:60%;height:74%}}
+</style><style>
+/* Use a real responsive image so the complete artwork always shows */
+.visual{position:relative;display:block;width:100%;height:auto!important;min-height:0!important;aspect-ratio:auto!important;margin:0;padding:0;overflow:hidden}
+.hero-image{position:relative;z-index:0;display:block;width:100%;height:auto;max-width:none;object-fit:contain}
+.motion{display:none!important}
+.snow{position:absolute;z-index:1;right:0;top:0;width:56%;height:76%}
+.frost{position:absolute;z-index:2}
+@media(max-width:760px){.visual{height:auto!important;min-height:0!important;aspect-ratio:auto!important}.hero-image{width:100%;height:auto}.snow{width:60%;height:76%}}
 </style></head><body><nav><a href="../index.html">KRYSS STUDIO</a><div><a href="../index.html">Graphic</a><a>Web</a><a>Illus</a><a class="on">About</a></div></nav><main>
-<section class="visual" aria-label="Winter hanok café"><div class="motion"></div><div class="snow" id="snow" aria-hidden="true"></div><div class="frost"></div></section>
+<section class="visual" aria-label="Winter hanok café"><img class="hero-image" src="images/about-hanok-winter.png?v=6" alt="A woman working in a warm hanok café while snow falls outside"><div class="snow" id="snow" aria-hidden="true"></div><div class="frost"></div></section>
 <section class="intro" id="about"><p class="label about-label">About Krycee Liew</p><p class="places">Malaysia · Japan · South Korea</p><h2>One practice.<br>Many perspectives.</h2><p>A multilingual senior designer connecting beauty, brand and digital experiences across APAC.</p><div class="stats"><div><b>8+</b><span>Years</span></div><div><b>3</b><span>Countries</span></div><div><b>5</b><span>Languages</span></div><div><b>APAC</b><span>Markets</span></div></div></section>
 <section class="section"><header><p class="label">Career journey</p><h2>From print<br>to digital.</h2><div class="route">MY<i></i>JP<i></i>KR<i></i>MY</div></header><div class="timeline">
 <article class="job"><time>2025—Now</time><div><small>Malaysia</small><h3>Accenture Southeast Asia</h3><p>Media &amp; Graphics Design Senior Analyst</p><div class="tags"><span>Beauty</span><span>Campaign</span><span>CRM</span><span>Paid Media</span></div></div></article>
