@@ -1,299 +1,73 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Malaysia · Japan · Korea — Train Journey</title>
-  <style>
-    :root {
-      color-scheme: dark;
-      --ink: #f5f1e9;
-      --accent: #ee7646;
-      --glass: rgba(12, 14, 15, .38);
-    }
-
-    * { box-sizing: border-box; }
-
-    html, body {
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      overflow: hidden;
-      background: #070808;
-      color: var(--ink);
-      font-family: Inter, Arial, sans-serif;
-    }
-
-    .journey {
-      position: relative;
-      width: 100vw;
-      height: 100svh;
-      isolation: isolate;
-      overflow: hidden;
-      background: #070808;
-    }
-
-    .scene {
-      position: absolute;
-      inset: -4%;
-      z-index: -3;
-      background-position: center;
-      background-repeat: no-repeat;
-      background-size: cover;
-      transform: scale(1);
-      filter: saturate(.92) contrast(1.03);
-      will-change: transform, opacity;
-    }
-
-    .scene.push {
-      animation: pushForward 5.5s cubic-bezier(.22, .61, .36, 1) both;
-    }
-
-    .scene.is-changing { opacity: .75; }
-
-    .shade {
-      position: absolute;
-      inset: 0;
-      z-index: -1;
-      pointer-events: none;
-      background:
-        linear-gradient(180deg, rgba(0, 0, 0, .3), transparent 22%, transparent 74%, rgba(0, 0, 0, .42)),
-        radial-gradient(circle at center, transparent 45%, rgba(0, 0, 0, .2) 100%);
-    }
-
-    nav {
-      position: absolute;
-      z-index: 10;
-      top: 0;
-      left: 50%;
-      width: min(calc(100% - 64px), 1240px);
-      height: 84px;
-      transform: translateX(-50%);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid rgba(255, 255, 255, .28);
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: .16em;
-      text-transform: uppercase;
-      text-shadow: 0 1px 12px rgba(0, 0, 0, .5);
-    }
-
-    nav .route { display: flex; align-items: center; gap: 12px; }
-    nav .route i { width: 22px; border-top: 1px solid rgba(255, 255, 255, .5); }
-
-    .location {
-      position: absolute;
-      z-index: 5;
-      left: 50%;
-      bottom: 42px;
-      transform: translateX(-50%);
-      display: grid;
-      justify-items: center;
-      gap: 8px;
-      text-shadow: 0 2px 18px rgba(0, 0, 0, .7);
-      transition: opacity .25s ease, transform .25s ease;
-    }
-
-    .location.hidden {
-      opacity: 0;
-      transform: translate(-50%, 8px);
-    }
-
-    .location small {
-      color: var(--accent);
-      font-size: 9px;
-      letter-spacing: .2em;
-      text-transform: uppercase;
-    }
-
-    .location strong {
-      font-family: Georgia, serif;
-      font-size: clamp(28px, 3vw, 46px);
-      font-weight: 400;
-      letter-spacing: .02em;
-    }
-
-    .doors {
-      position: absolute;
-      inset: 0;
-      z-index: 8;
-      pointer-events: none;
-      filter: drop-shadow(0 0 24px rgba(0, 0, 0, .8));
-    }
-
-    .door {
-      position: absolute;
-      top: 0;
-      width: 50.15%;
-      height: 100%;
-      overflow: hidden;
-      background:
-        linear-gradient(90deg, #111 0 2px, transparent 2px calc(100% - 2px), #050505 calc(100% - 2px)),
-        linear-gradient(115deg, #555a5d 0%, #242729 21%, #62676a 48%, #1a1c1e 73%, #4a4e50 100%);
-      transition: transform .82s cubic-bezier(.76, 0, .24, 1);
-      will-change: transform;
-    }
-
-    .door::before {
-      content: "";
-      position: absolute;
-      top: 14%;
-      width: 47%;
-      height: 56%;
-      border: 10px solid #191b1c;
-      border-radius: 16px;
-      background:
-        linear-gradient(145deg, rgba(255,255,255,.2), transparent 35%),
-        rgba(5, 8, 10, .86);
-      box-shadow: inset 0 0 0 2px #777b7d, 0 10px 26px rgba(0,0,0,.5);
-    }
-
-    .door::after {
-      content: "";
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 3px;
-      background: rgba(0, 0, 0, .82);
-      box-shadow: 0 0 14px rgba(0,0,0,.85);
-    }
-
-    .door.left { left: 0; transform: translateX(-100.5%); }
-    .door.left::before { right: 9%; }
-    .door.left::after { right: 0; }
-    .door.right { right: 0; transform: translateX(100.5%); }
-    .door.right::before { left: 9%; }
-    .door.right::after { left: 0; }
-    .doors.closed .left,
-    .doors.closed .right { transform: translateX(0); }
-
-    .control {
-      position: absolute;
-      z-index: 12;
-      right: 26px;
-      bottom: 24px;
-      width: 42px;
-      height: 42px;
-      border: 1px solid rgba(255,255,255,.38);
-      border-radius: 50%;
-      background: var(--glass);
-      color: white;
-      cursor: pointer;
-      backdrop-filter: blur(10px);
-      font-size: 12px;
-    }
-
-    @keyframes pushForward {
-      from { transform: scale(1); }
-      to { transform: scale(1.22); }
-    }
-
-    @media (max-width: 700px) {
-      nav { width: calc(100% - 36px); height: 70px; }
-      nav .route { gap: 7px; }
-      nav .route i { width: 10px; }
-      .scene { inset: 0; }
-      .location { bottom: 28px; }
-      .door::before { width: 60%; }
-      .control { right: 16px; bottom: 16px; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .scene.push { animation: none; }
-      .door { transition-duration: .01ms; }
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Botanical Train · Kryss Studio</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#132119;color:#fff;font-family:Arial,sans-serif}
+main{position:fixed;inset:0;overflow:hidden;background:url('assets/malaysia-woodland.webp') center/cover}
+canvas{display:block;width:100%;height:100%}
+nav{position:absolute;top:22px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:5px;padding:5px;border-radius:28px;background:#111b;backdrop-filter:blur(12px);white-space:nowrap}
+button{border:0;cursor:pointer;font:10px Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;border-radius:24px;padding:11px 16px;background:#eae9df;color:#25281f}
+button[aria-current=true]{background:#c4d59e}button:focus-visible{outline:3px solid #fff;outline-offset:4px}
+.brand{padding:0 12px;font-size:10px;letter-spacing:.12em}.control{position:absolute;right:22px;bottom:22px;background:#172019b8;color:white;border:1px solid #ffffff70;backdrop-filter:blur(12px)}
+#status{position:absolute;bottom:24px;left:24px;font-size:11px;letter-spacing:.1em;text-shadow:0 1px 8px #000;background:#14201666;padding:8px 12px;border-radius:20px}
+@media(max-width:600px){.brand{display:none}nav{top:16px}button{padding:10px 13px}.control{right:14px;bottom:16px}#status{left:14px;bottom:16px}}
+</style>
 </head>
 <body>
-  <main class="journey" aria-label="Train journey from Malaysia to Japan to South Korea">
-    <div class="scene push" id="scene"></div>
-    <div class="shade"></div>
-
-    <nav>
-      <span>Kryss Studio</span>
-      <span class="route">Malaysia <i></i> Japan <i></i> Korea</span>
-    </nav>
-
-    <div class="location" id="location">
-      <small id="chapter">Chapter 01</small>
-      <strong id="country">Malaysia</strong>
-    </div>
-
-    <div class="doors" id="doors" aria-hidden="true">
-      <div class="door left"></div>
-      <div class="door right"></div>
-    </div>
-
-    <button class="control" id="control" type="button" aria-label="Pause animation">Ⅱ</button>
-  </main>
-
-  <script>
-    const stops = [
-      { country: "Malaysia", image: "assets/malaysia-botanical.webp" },
-      { country: "Japan", image: "assets/japan-botanical.webp" },
-      { country: "South Korea", image: "assets/korea-botanical.webp" }
-    ];
-
-    const scene = document.getElementById("scene");
-    const doors = document.getElementById("doors");
-    const locationCard = document.getElementById("location");
-    const country = document.getElementById("country");
-    const chapter = document.getElementById("chapter");
-    const control = document.getElementById("control");
-    let index = 0;
-    let playing = true;
-    let timer;
-
-    stops.forEach(stop => {
-      const preload = new Image();
-      preload.src = stop.image;
-    });
-
-    function showStop(nextIndex) {
-      index = nextIndex % stops.length;
-      scene.style.backgroundImage = `url("${stops[index].image}")`;
-      country.textContent = stops[index].country;
-      chapter.textContent = `Chapter ${String(index + 1).padStart(2, "0")}`;
-      scene.classList.remove("push");
-      void scene.offsetWidth;
-      scene.classList.add("push");
-    }
-
-    function scheduleTransition() {
-      clearTimeout(timer);
-      if (!playing) return;
-      timer = setTimeout(() => {
-        locationCard.classList.add("hidden");
-        doors.classList.add("closed");
-
-        setTimeout(() => {
-          showStop(index + 1);
-        }, 820);
-
-        setTimeout(() => {
-          doors.classList.remove("closed");
-        }, 1050);
-
-        setTimeout(() => {
-          locationCard.classList.remove("hidden");
-          scheduleTransition();
-        }, 1880);
-      }, 4300);
-    }
-
-    control.addEventListener("click", () => {
-      playing = !playing;
-      control.textContent = playing ? "Ⅱ" : "▶";
-      control.setAttribute("aria-label", playing ? "Pause animation" : "Play animation");
-      scene.style.animationPlayState = playing ? "running" : "paused";
-      if (playing) scheduleTransition();
-      else clearTimeout(timer);
-    });
-
-    showStop(0);
-    scheduleTransition();
-  </script>
+<main aria-label="An immersive botanical train journey">
+<canvas id="journey" role="img" aria-label="Dense tropical greenery and hibiscus surrounding wooden train doors"></canvas>
+<nav aria-label="Destinations"><span class="brand">KRYSS STUDIO</span><button data-stop="0" aria-current="true">Malaysia</button><button data-stop="1" aria-current="false">Japan</button><button data-stop="2" aria-current="false">Korea</button></nav>
+<span id="status" role="status">Loading gardens…</span>
+<button class="control" id="control" aria-label="Pause animation" disabled>Pause Ⅱ</button>
+</main>
+<script>
+'use strict';
+const canvas=document.querySelector('#journey'),ctx=canvas.getContext('2d',{alpha:false});
+const control=document.querySelector('#control'),status=document.querySelector('#status');
+const stops=[['Malaysia','malaysia'],['Japan','japan'],['South Korea','korea']];
+const buttons=[...document.querySelectorAll('[data-stop]')];
+const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+let playing=!reduced.matches,ready=false,index=0,elapsed=0,last=0,raf=0,w=0,h=0,dpr=1;
+const duration=11000,door={x:550,y:42,width:436,height:836},cx=768,cy=460;
+const clamp=t=>Math.max(0,Math.min(1,t)),smooth=t=>{t=clamp(t);return t*t*(3-2*t)};
+const images=stops.map(([,name])=>{const img=new Image();img.src='assets/'+name+'-woodland.webp';return img});
+function resize(){w=innerWidth;h=innerHeight;dpr=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);if(ready)render()}
+function updateUI(){buttons.forEach((b,i)=>b.setAttribute('aria-current',String(i===index)));status.textContent=stops[index][0];canvas.setAttribute('aria-label',stops[index][0]+': botanical train with wooden doors and floor-to-ceiling flowers');control.textContent=playing?'Pause Ⅱ':'Play ▷';control.setAttribute('aria-label',playing?'Pause animation':'Play animation')}
+function baseScale(){return Math.max(w/1536,h/(2*Math.min(cy,1024-cy)))}
+function drawScene(img,scale){ctx.drawImage(img,w/2-cx*scale,h/2-cy*scale,1536*scale,1024*scale)}
+function render(){
+ ctx.setTransform(dpr,0,0,dpr,0,0);ctx.fillStyle='#132119';ctx.fillRect(0,0,w,h);
+ const base=baseScale(),t=elapsed/duration;
+ const opening=smooth((t-.25)/.25),travel=smooth((t-.52)/.46);
+ const approach=1+.12*smooth(t/.52);
+ // Advance until the OPEN doorway is outside all viewport edges.
+ const through=Math.max(w/(door.width*base),h/(door.height*base))*1.06;
+ const zoom=approach+(Math.max(through,approach)-approach)*travel;
+ const s=base*zoom,dx=w/2+(door.x-cx)*s,dy=h/2+(door.y-cy)*s,dw=door.width*s,dh=door.height*s;
+ // The next carriage is behind the real doorway, never a closing screen overlay.
+ if(opening===0){drawScene(images[index],s);return}
+ drawScene(images[(index+1)%3],base);
+ ctx.save();ctx.beginPath();ctx.rect(0,0,w,h);ctx.rect(dx,dy,dw,dh);ctx.clip('evenodd');drawScene(images[index],s);ctx.restore();
+ // Slide the photographed wooden leaves behind the flower-covered frame.
+ ctx.save();ctx.beginPath();ctx.rect(dx,dy,dw,dh);ctx.clip();
+ const half=door.width/2,shift=dw/2*opening;
+ ctx.drawImage(images[index],door.x,door.y,half,door.height,dx-shift,dy,dw/2,dh);
+ ctx.drawImage(images[index],door.x+half,door.y,half,door.height,dx+dw/2+shift,dy,dw/2,dh);
+ ctx.restore();
+}
+function tick(now){raf=0;if(!ready||!playing||document.hidden){last=0;return}if(last)elapsed+=Math.min(now-last,100);last=now;if(elapsed>=duration){elapsed%=duration;index=(index+1)%3;updateUI()}render();raf=requestAnimationFrame(tick)}
+function schedule(){last=0;if(ready&&playing&&!document.hidden&&!raf)raf=requestAnimationFrame(tick)}
+control.addEventListener('click',()=>{playing=!playing;if(!playing){cancelAnimationFrame(raf);raf=0;last=0}updateUI();schedule()});
+buttons.forEach((b,i)=>b.addEventListener('click',()=>{if(!ready)return;index=i;elapsed=0;last=0;updateUI();render();schedule()}));
+document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelAnimationFrame(raf);raf=0;last=0}else schedule()});
+reduced.addEventListener('change',e=>{if(e.matches){playing=false;cancelAnimationFrame(raf);raf=0;last=0;updateUI()}});
+addEventListener('resize',resize);resize();
+Promise.all(images.map(img=>img.decode())).then(()=>{ready=true;control.disabled=false;updateUI();render();schedule()}).catch(()=>{status.textContent='Images could not load — please reload.';control.textContent='Unavailable'});
+// Explicit local visual regression mode only.
+if(new URLSearchParams(location.search).has('test'))window.previewFrame=(country,ms)=>{playing=false;cancelAnimationFrame(raf);raf=0;index=country;elapsed=ms;updateUI();render()};
+</script>
 </body>
 </html>
