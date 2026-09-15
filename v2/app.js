@@ -24,3 +24,27 @@ document.querySelector('#archive-toggle').addEventListener('click',e=>{const b=e
 document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-filter]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));list(b.dataset.filter)}));
 addEventListener('hashchange',route);document.querySelector('#year').textContent=new Date().getFullYear();
 fetch('projects.json').then(r=>{if(!r.ok)throw Error('Project data unavailable');return r.json()}).then(data=>{projects=data;document.querySelector('#featured').innerHTML=featuredIds.map((id,i)=>card(byId(id),i)).join('');list();route()}).catch(()=>{document.querySelector('#featured').innerHTML='<p class="empty">The collection could not load. Please reload, or <a href="../index.html">view the original portfolio ↗</a>.</p>'});
+
+/* Original homepage visuals, decoded before each crossfade. */
+(()=>{
+const hero=document.querySelector('.hero'),frames=[...document.querySelectorAll('.hero-frame')],dots=[...document.querySelectorAll('[data-visual]')],pause=document.querySelector('#visual-pause');
+const sources=['visual7.jpg','visual6.jpg','visual2.jpg','visual3.jpg','visual4.jpg'];
+const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+let current=0,front=0,timer,token=0,playing=!reduced.matches,visible=true;
+const cache=new Map();
+function preload(i){if(!cache.has(i)){const img=new Image();img.src='../innerpage/images/'+sources[i];cache.set(i,img.decode().then(()=>img).catch(()=>{cache.delete(i);return null}))}return cache.get(i)}
+function ui(){dots.forEach((b,i)=>b.setAttribute('aria-pressed',String(i===current)));pause.textContent=playing?'Pause Ⅱ':'Play ▷';pause.setAttribute('aria-label',playing?'Pause slideshow':'Play slideshow')}
+function schedule(){clearTimeout(timer);if(playing&&visible&&!document.hidden&&!dialog.open)timer=setTimeout(()=>show((current+1)%sources.length),6500)}
+async function show(i){const request=++token;clearTimeout(timer);const image=await preload(i);if(request!==token)return;if(!image){schedule();return}if(i!==current){const next=1-front;frames[next].src=image.src;frames[next].alt='Portfolio design visual '+(i+1);frames[next].removeAttribute('aria-hidden');frames[next].classList.add('active');frames[front].classList.remove('active');frames[front].setAttribute('aria-hidden','true');current=i;front=next}ui();schedule();if(playing)preload((current+1)%sources.length)}
+dots.forEach((b,i)=>b.addEventListener('click',()=>show(i)));
+pause.addEventListener('click',()=>{playing=!playing;++token;ui();schedule();if(playing)preload((current+1)%sources.length)});
+document.addEventListener('visibilitychange',schedule);
+new MutationObserver(schedule).observe(dialog,{attributes:true,attributeFilter:['open']});
+new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;schedule()},{threshold:.05}).observe(hero);
+reduced.addEventListener('change',e=>{if(e.matches){playing=false;++token;ui();schedule()}});
+ui();schedule();if(playing)preload(1);
+if(!reduced.matches){
+const reveal=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in-view');reveal.unobserve(e.target)}}),{threshold:.08});
+document.querySelectorAll('.section-head,.about-grid,.hello').forEach(el=>{el.classList.add('reveal-ready');reveal.observe(el)});
+}
+})();
