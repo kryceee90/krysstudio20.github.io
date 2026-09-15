@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Malaysia · Japan · Korea — Train Journey</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f5f1e9;
+      --accent: #ee7646;
+      --glass: rgba(12, 14, 15, .38);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #070808;
+      color: var(--ink);
+      font-family: Inter, Arial, sans-serif;
+    }
+
+    .journey {
+      position: relative;
+      width: 100vw;
+      height: 100svh;
+      isolation: isolate;
+      overflow: hidden;
+      background: #070808;
+    }
+
+    .scene {
+      position: absolute;
+      inset: -4%;
+      z-index: -3;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: cover;
+      transform: scale(1);
+      filter: saturate(.92) contrast(1.03);
+      will-change: transform, opacity;
+    }
+
+    .scene.push {
+      animation: pushForward 5.5s cubic-bezier(.22, .61, .36, 1) both;
+    }
+
+    .scene.is-changing { opacity: .75; }
+
+    .shade {
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background:
+        linear-gradient(180deg, rgba(0, 0, 0, .3), transparent 22%, transparent 74%, rgba(0, 0, 0, .42)),
+        radial-gradient(circle at center, transparent 45%, rgba(0, 0, 0, .2) 100%);
+    }
+
+    nav {
+      position: absolute;
+      z-index: 10;
+      top: 0;
+      left: 50%;
+      width: min(calc(100% - 64px), 1240px);
+      height: 84px;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, .28);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      text-shadow: 0 1px 12px rgba(0, 0, 0, .5);
+    }
+
+    nav .route { display: flex; align-items: center; gap: 12px; }
+    nav .route i { width: 22px; border-top: 1px solid rgba(255, 255, 255, .5); }
+
+    .location {
+      position: absolute;
+      z-index: 5;
+      left: 50%;
+      bottom: 42px;
+      transform: translateX(-50%);
+      display: grid;
+      justify-items: center;
+      gap: 8px;
+      text-shadow: 0 2px 18px rgba(0, 0, 0, .7);
+      transition: opacity .25s ease, transform .25s ease;
+    }
+
+    .location.hidden {
+      opacity: 0;
+      transform: translate(-50%, 8px);
+    }
+
+    .location small {
+      color: var(--accent);
+      font-size: 9px;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+
+    .location strong {
+      font-family: Georgia, serif;
+      font-size: clamp(28px, 3vw, 46px);
+      font-weight: 400;
+      letter-spacing: .02em;
+    }
+
+    .doors {
+      position: absolute;
+      inset: 0;
+      z-index: 8;
+      pointer-events: none;
+      filter: drop-shadow(0 0 24px rgba(0, 0, 0, .8));
+    }
+
+    .door {
+      position: absolute;
+      top: 0;
+      width: 50.15%;
+      height: 100%;
+      overflow: hidden;
+      background:
+        linear-gradient(90deg, #111 0 2px, transparent 2px calc(100% - 2px), #050505 calc(100% - 2px)),
+        linear-gradient(115deg, #555a5d 0%, #242729 21%, #62676a 48%, #1a1c1e 73%, #4a4e50 100%);
+      transition: transform .82s cubic-bezier(.76, 0, .24, 1);
+      will-change: transform;
+    }
+
+    .door::before {
+      content: "";
+      position: absolute;
+      top: 14%;
+      width: 47%;
+      height: 56%;
+      border: 10px solid #191b1c;
+      border-radius: 16px;
+      background:
+        linear-gradient(145deg, rgba(255,255,255,.2), transparent 35%),
+        rgba(5, 8, 10, .86);
+      box-shadow: inset 0 0 0 2px #777b7d, 0 10px 26px rgba(0,0,0,.5);
+    }
+
+    .door::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: rgba(0, 0, 0, .82);
+      box-shadow: 0 0 14px rgba(0,0,0,.85);
+    }
+
+    .door.left { left: 0; transform: translateX(-100.5%); }
+    .door.left::before { right: 9%; }
+    .door.left::after { right: 0; }
+    .door.right { right: 0; transform: translateX(100.5%); }
+    .door.right::before { left: 9%; }
+    .door.right::after { left: 0; }
+    .doors.closed .left,
+    .doors.closed .right { transform: translateX(0); }
+
+    .control {
+      position: absolute;
+      z-index: 12;
+      right: 26px;
+      bottom: 24px;
+      width: 42px;
+      height: 42px;
+      border: 1px solid rgba(255,255,255,.38);
+      border-radius: 50%;
+      background: var(--glass);
+      color: white;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      font-size: 12px;
+    }
+
+    @keyframes pushForward {
+      from { transform: scale(1); }
+      to { transform: scale(1.22); }
+    }
+
+    @media (max-width: 700px) {
+      nav { width: calc(100% - 36px); height: 70px; }
+      nav .route { gap: 7px; }
+      nav .route i { width: 10px; }
+      .scene { inset: 0; }
+      .location { bottom: 28px; }
+      .door::before { width: 60%; }
+      .control { right: 16px; bottom: 16px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .scene.push { animation: none; }
+      .door { transition-duration: .01ms; }
+    }
+  </style>
+</head>
+<body>
+  <main class="journey" aria-label="Train journey from Malaysia to Japan to South Korea">
+    <div class="scene push" id="scene"></div>
+    <div class="shade"></div>
+
+    <nav>
+      <span>Kryss Studio</span>
+      <span class="route">Malaysia <i></i> Japan <i></i> Korea</span>
+    </nav>
+
+    <div class="location" id="location">
+      <small id="chapter">Chapter 01</small>
+      <strong id="country">Malaysia</strong>
+    </div>
+
+    <div class="doors" id="doors" aria-hidden="true">
+      <div class="door left"></div>
+      <div class="door right"></div>
+    </div>
+
+    <button class="control" id="control" type="button" aria-label="Pause animation">Ⅱ</button>
+  </main>
+
+  <script>
+    const stops = [
+      { country: "Malaysia", image: "assets/malaysia.webp" },
+      { country: "Japan", image: "assets/japan.webp" },
+      { country: "South Korea", image: "assets/korea.webp" }
+    ];
+
+    const scene = document.getElementById("scene");
+    const doors = document.getElementById("doors");
+    const locationCard = document.getElementById("location");
+    const country = document.getElementById("country");
+    const chapter = document.getElementById("chapter");
+    const control = document.getElementById("control");
+    let index = 0;
+    let playing = true;
+    let timer;
+
+    stops.forEach(stop => {
+      const preload = new Image();
+      preload.src = stop.image;
+    });
+
+    function showStop(nextIndex) {
+      index = nextIndex % stops.length;
+      scene.style.backgroundImage = `url("${stops[index].image}")`;
+      country.textContent = stops[index].country;
+      chapter.textContent = `Chapter ${String(index + 1).padStart(2, "0")}`;
+      scene.classList.remove("push");
+      void scene.offsetWidth;
+      scene.classList.add("push");
+    }
+
+    function scheduleTransition() {
+      clearTimeout(timer);
+      if (!playing) return;
+      timer = setTimeout(() => {
+        locationCard.classList.add("hidden");
+        doors.classList.add("closed");
+
+        setTimeout(() => {
+          showStop(index + 1);
+        }, 820);
+
+        setTimeout(() => {
+          doors.classList.remove("closed");
+        }, 1050);
+
+        setTimeout(() => {
+          locationCard.classList.remove("hidden");
+          scheduleTransition();
+        }, 1880);
+      }, 4300);
+    }
+
+    control.addEventListener("click", () => {
+      playing = !playing;
+      control.textContent = playing ? "Ⅱ" : "▶";
+      control.setAttribute("aria-label", playing ? "Pause animation" : "Play animation");
+      scene.style.animationPlayState = playing ? "running" : "paused";
+      if (playing) scheduleTransition();
+      else clearTimeout(timer);
+    });
+
+    showStop(0);
+    scheduleTransition();
+  </script>
+</body>
+</html>
