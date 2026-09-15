@@ -1,0 +1,26 @@
+'use strict';
+const assetRoot='../innerpage/';
+const escapeHTML=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const featuredIds=['graphic6','graphic2','web6','graphic14','graphic17','illustration'];
+const dialog=document.querySelector('#project-dialog'),content=document.querySelector('#project-content');
+let projects=[],activeId=null,previousHash='#work',opener=null;
+const byId=id=>projects.find(p=>p.id===id);
+function mediaURL(src){return assetRoot+src}
+function niceTitle(p){return ({graphic6:'Chameau — beauty in print',graphic2:'Reel N Deep',web6:'Play the Best',graphic14:'Best Baked Cookie',graphic17:'GYAW',illustration:'A more playful perspective',web1:'Chameau — Christmas website',web2:'Chameau — product story',web3:'Chameau — spring campaign',web4:'Chameau — seasonal campaign',web5:'A Twosome Place'})[p.id]||p.title}
+function card(p,i){return '<a class="project" href="#project/'+p.id+'" aria-label="View '+escapeHTML(niceTitle(p))+'"><div class="project-image"><img src="'+mediaURL(p.cover)+'" alt="'+escapeHTML(niceTitle(p))+' design work" loading="'+(i<2?'eager':'lazy')+'" decoding="async"><span class="open" aria-hidden="true">↗</span></div><div class="project-meta"><div><h3>'+escapeHTML(niceTitle(p))+'</h3><p>'+escapeHTML(p.category+' / '+p.service)+'</p></div><span>'+String(i+1).padStart(2,'0')+'</span></div></a>'}
+function list(filter='All'){document.querySelector('#project-list').innerHTML=projects.filter(p=>filter==='All'||p.category===filter).map(p=>'<a class="archive-row" href="#project/'+p.id+'"><span>'+String(projects.indexOf(p)+1).padStart(2,'0')+'</span><strong>'+escapeHTML(niceTitle(p))+'</strong><span class="row-service">'+escapeHTML(p.service)+'</span><span class="row-place">'+escapeHTML(p.place)+'</span><span class="row-arrow" aria-hidden="true">↗</span></a>').join('')}
+function stopMedia(){dialog.querySelectorAll('video').forEach(v=>v.pause())}
+function openProject(id){const p=byId(id);if(!p)return;stopMedia();activeId=id;content.innerHTML='<header class="detail-heading"><span class="eyebrow">'+escapeHTML(p.category)+' / '+String(projects.indexOf(p)+1).padStart(2,'0')+'</span><h2 id="project-title">'+escapeHTML(niceTitle(p))+'</h2><div class="detail-info"><span>'+escapeHTML(p.service)+'</span><span>'+escapeHTML(p.place)+'</span></div></header><div class="detail-gallery">'+p.media.map((m,i)=>m.type==='video'?'<video src="'+mediaURL(m.src)+'" controls muted playsinline preload="none" aria-label="'+escapeHTML(niceTitle(p))+' motion design '+(i+1)+'"></video>':'<img src="'+mediaURL(m.src)+'" loading="'+(i===0?'eager':'lazy')+'" decoding="async" alt="'+escapeHTML(niceTitle(p))+' — design detail '+(i+1)+'">').join('')+'</div>';if(!dialog.open)dialog.showModal();dialog.scrollTop=0;document.title=niceTitle(p)+' — Krycee Liew';document.querySelector('#close-project').focus({preventScroll:true})}
+function closeProject(){stopMedia();if(dialog.open)dialog.close();activeId=null;document.title='Krycee Liew — Graphic & Digital Design';if(opener?.isConnected)opener.focus({preventScroll:true})}
+function route(){const match=location.hash.match(/^#project\/([a-z0-9]+)$/);if(match&&byId(match[1]))openProject(match[1]);else closeProject()}
+document.addEventListener('click',e=>{const link=e.target.closest('a[href^="#project/"]');if(link){opener=link;if(!dialog.open)previousHash=location.hash||'#work'}});
+function dismiss(){history.replaceState(null,'',location.pathname+location.search+previousHash);closeProject()}
+document.querySelector('#close-project').addEventListener('click',dismiss);
+dialog.addEventListener('cancel',e=>{e.preventDefault();dismiss()});
+document.querySelector('#next-project').addEventListener('click',()=>{const i=projects.findIndex(p=>p.id===activeId);location.hash='project/'+projects[(i+1)%projects.length].id});
+document.querySelector('#detail-top-button').addEventListener('click',()=>dialog.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'}));
+content.addEventListener('click',e=>{if(e.target.matches('.detail-gallery img'))e.target.classList.toggle('expanded')});
+document.querySelector('#archive-toggle').addEventListener('click',e=>{const b=e.currentTarget,archive=document.querySelector('#archive'),show=archive.hidden;archive.hidden=!show;b.setAttribute('aria-expanded',String(show));b.innerHTML=show?'Close collection <span>−</span>':'View all work <span>＋</span>'});
+document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-filter]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));list(b.dataset.filter)}));
+addEventListener('hashchange',route);document.querySelector('#year').textContent=new Date().getFullYear();
+fetch('projects.json').then(r=>{if(!r.ok)throw Error('Project data unavailable');return r.json()}).then(data=>{projects=data;document.querySelector('#featured').innerHTML=featuredIds.map((id,i)=>card(byId(id),i)).join('');list();route()}).catch(()=>{document.querySelector('#featured').innerHTML='<p class="empty">The collection could not load. Please reload, or <a href="../index.html">view the original portfolio ↗</a>.</p>'});
